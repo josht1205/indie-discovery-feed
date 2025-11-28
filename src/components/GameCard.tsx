@@ -28,19 +28,17 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
     userInteractions?.has(`wishlist-${game.id}`) || false
   );
   
-  const touchStartY = useRef(0);
-  const touchStartX = useRef(0);
+  const startY = useRef(0);
+  const startX = useRef(0);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartY.current = e.touches[0].clientY;
-    touchStartX.current = e.touches[0].clientX;
+  const handleStart = (clientX: number, clientY: number) => {
+    startY.current = clientY;
+    startX.current = clientX;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEndY = e.changedTouches[0].clientY;
-    const touchEndX = e.changedTouches[0].clientX;
-    const diffY = touchStartY.current - touchEndY;
-    const diffX = touchStartX.current - touchEndX;
+  const handleEnd = (clientX: number, clientY: number) => {
+    const diffY = startY.current - clientY;
+    const diffX = startX.current - clientX;
 
     // Swipe up (next)
     if (diffY > 50 && Math.abs(diffX) < 50) {
@@ -54,6 +52,22 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
     else if (diffX < -50 && Math.abs(diffY) < 50) {
       handleInteraction("wishlist");
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    handleStart(e.touches[0].clientX, e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    handleEnd(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    handleStart(e.clientX, e.clientY);
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    handleEnd(e.clientX, e.clientY);
   };
 
   const handleInteraction = async (action: "upvote" | "wishlist" | "buy") => {
@@ -125,9 +139,11 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
 
   return (
     <div 
-      className="relative w-full h-full bg-gradient-card rounded-3xl overflow-hidden shadow-card border border-border/50"
+      className="relative w-full h-full bg-gradient-card rounded-3xl overflow-hidden shadow-card border border-border/50 cursor-grab active:cursor-grabbing"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
     >
       {/* Video/Trailer */}
       <div className="relative w-full h-[65%] bg-muted">
