@@ -6,6 +6,7 @@ import Rising from "./pages/Rising";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
 import Claim from "./pages/Claim";
+import DevPricing from "./pages/DevPricing";
 
 const queryClient = new QueryClient();
 
@@ -19,6 +20,7 @@ const App = () => (
         <Route path="/profile" element={<Profile />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/claim" element={<Claim />} />
+        <Route path="/dev-pricing" element={<DevPricing />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
