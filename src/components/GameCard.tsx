@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Heart, ShoppingCart, ExternalLink, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -27,6 +27,34 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
   const [isWishlisted, setIsWishlisted] = useState(
     userInteractions?.has(`wishlist-${game.id}`) || false
   );
+  
+  const touchStartY = useRef(0);
+  const touchStartX = useRef(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const touchEndX = e.changedTouches[0].clientX;
+    const diffY = touchStartY.current - touchEndY;
+    const diffX = touchStartX.current - touchEndX;
+
+    // Swipe up (next)
+    if (diffY > 50 && Math.abs(diffX) < 50) {
+      onSwipe("up");
+    }
+    // Swipe left (skip)
+    else if (diffX > 50 && Math.abs(diffY) < 50) {
+      onSwipe("left");
+    }
+    // Swipe right (wishlist)
+    else if (diffX < -50 && Math.abs(diffY) < 50) {
+      handleInteraction("wishlist");
+    }
+  };
 
   const handleInteraction = async (action: "upvote" | "wishlist" | "buy") => {
     try {
@@ -96,7 +124,11 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
   };
 
   return (
-    <div className="relative w-full h-full bg-gradient-card rounded-3xl overflow-hidden shadow-card border border-border/50">
+    <div 
+      className="relative w-full h-full bg-gradient-card rounded-3xl overflow-hidden shadow-card border border-border/50"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Video/Trailer */}
       <div className="relative w-full h-[65%] bg-muted">
         <video
