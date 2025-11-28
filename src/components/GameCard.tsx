@@ -101,11 +101,23 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
         return;
       }
 
-      // Handle buy action separately (no Supabase)
+      // Handle buy action with affiliate tracking
       if (action === "buy") {
-        const url = game.steam_url || game.itchio_url;
-        if (url) {
-          window.open(url, "_blank");
+        const storeType = game.steam_url ? 'steam' : 'itchio';
+        const storeUrl = game.steam_url || game.itchio_url;
+        
+        if (storeUrl) {
+          // Log the click for affiliate tracking
+          await supabase.from('affiliate_clicks').insert({
+            game_id: game.id,
+            user_id: user.id,
+            store_type: storeType,
+            referrer_url: window.location.href,
+            user_agent: navigator.userAgent,
+          });
+
+          // Open store page
+          window.open(storeUrl, "_blank");
           toast.success("Opening store page...");
         }
         return;

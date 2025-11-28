@@ -2,3 +2,6 @@ project_id = "iodftkvjospnsfavasgx"
 
 [functions.rotate-games]
 verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
