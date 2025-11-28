@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Heart, ShoppingCart, ExternalLink, X } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -17,6 +17,7 @@ interface GameCardProps {
     tags: string[];
     dev_x_handle?: string;
     upvotes: number;
+    views?: number;
   };
   onSwipe: (direction: "left" | "right" | "up") => void;
   userInteractions?: Set<string>;
@@ -30,6 +31,26 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
   
   const startY = useRef(0);
   const startX = useRef(0);
+
+  // Track view when card is shown
+  useEffect(() => {
+    const trackView = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      // Increment view count
+      const { error } = await supabase
+        .from("games")
+        .update({ views: game.views ? game.views + 1 : 1 })
+        .eq("id", game.id);
+      
+      if (error) {
+        console.error('Error tracking view:', error);
+      }
+    };
+    
+    trackView();
+  }, [game.id]);
 
   const handleStart = (clientX: number, clientY: number) => {
     startY.current = clientY;
