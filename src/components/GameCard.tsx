@@ -38,42 +38,57 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
         return;
       }
 
-      const interactionKey = `${action}-${game.id}`;
+      // Handle buy action separately (no Supabase)
+      if (action === "buy") {
+        const url = game.steam_url || game.itchio_url;
+        if (url) {
+          window.open(url, "_blank");
+          toast.success("Opening store page...");
+        }
+        return;
+      }
+
       const alreadyInteracted =
-        action === "upvote" ? isUpvoted : action === "wishlist" ? isWishlisted : false;
+        action === "upvote" ? isUpvoted : isWishlisted;
 
       if (alreadyInteracted) {
         // Remove interaction
-        await supabase
+        const { error } = await supabase
           .from("game_interactions")
           .delete()
           .eq("user_id", user.id)
           .eq("game_id", game.id)
           .eq("action", action);
 
-        if (action === "upvote") setIsUpvoted(false);
-        if (action === "wishlist") setIsWishlisted(false);
-        toast.success(`Removed from ${action === "upvote" ? "upvotes" : "wishlist"}`);
+        if (error) throw error;
+
+        if (action === "upvote") {
+          setIsUpvoted(false);
+          toast.success("Upvote removed!");
+        } else {
+          setIsWishlisted(false);
+          toast.success("Removed from wishlist!");
+        }
       } else {
         // Add interaction
-        await supabase.from("game_interactions").insert({
+        const { error } = await supabase.from("game_interactions").insert({
           user_id: user.id,
           game_id: game.id,
           action,
         });
 
+        if (error) throw error;
+
         if (action === "upvote") {
           setIsUpvoted(true);
-          toast.success("Upvoted! 🔥");
-        } else if (action === "wishlist") {
+          toast.success("Game upvoted! 🔥");
+        } else {
           setIsWishlisted(true);
-          toast.success("Added to wishlist");
-        } else if (action === "buy") {
-          // Open affiliate link
-          const url = game.steam_url || game.itchio_url;
-          if (url) window.open(url, "_blank");
-          toast.success("Opening store page...");
+          toast.success("Added to wishlist!");
         }
+
+        // Auto-advance to next game after successful interaction
+        onSwipe("up");
       }
     } catch (error: any) {
       toast.error(error.message || "Action failed");
@@ -84,28 +99,19 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
     <div className="relative w-full h-full bg-gradient-card rounded-3xl overflow-hidden shadow-card border border-border/50">
       {/* Video/Trailer */}
       <div className="relative w-full h-[65%] bg-muted">
-        {game.trailer_url.includes("youtube.com") || game.trailer_url.includes("youtu.be") ? (
-          <iframe
-            src={game.trailer_url.replace("watch?v=", "embed/").replace("youtu.be/", "youtube.com/embed/")}
-            className="w-full h-full object-cover"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <video
-            src={game.trailer_url}
-            className="w-full h-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-          />
-        )}
+        <video
+          src={game.trailer_url}
+          className="w-full h-full object-cover absolute inset-0 rounded-xl"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
 
         {/* Skip button */}
         <button
           onClick={() => onSwipe("left")}
-          className="absolute top-4 right-4 p-2 bg-background/60 backdrop-blur-sm rounded-full hover:bg-background/80 transition-colors"
+          className="absolute top-4 right-4 p-2 bg-background/60 backdrop-blur-sm rounded-full hover:bg-background/80 transition-colors z-10"
         >
           <X className="h-5 w-5" />
         </button>
