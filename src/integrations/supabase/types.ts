@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_clicks: {
+        Row: {
+          clicked_at: string
+          game_id: string
+          id: string
+          referrer_url: string | null
+          store_type: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_at?: string
+          game_id: string
+          id?: string
+          referrer_url?: string | null
+          store_type: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_at?: string
+          game_id?: string
+          id?: string
+          referrer_url?: string | null
+          store_type?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "affiliate_clicks_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dev_claims: {
         Row: {
           dev_x_handle: string | null
@@ -92,6 +130,8 @@ export type Database = {
       }
       games: {
         Row: {
+          boost_ends_at: string | null
+          boost_priority: number | null
           created_at: string
           description: string
           dev_x_handle: string | null
@@ -108,6 +148,8 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          boost_ends_at?: string | null
+          boost_priority?: number | null
           created_at?: string
           description: string
           dev_x_handle?: string | null
@@ -124,6 +166,8 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          boost_ends_at?: string | null
+          boost_priority?: number | null
           created_at?: string
           description?: string
           dev_x_handle?: string | null
@@ -146,6 +190,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          is_pro_dev: boolean | null
+          subscription_ends_at: string | null
           user_type: string
           x_handle: string | null
         }
@@ -153,6 +199,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          is_pro_dev?: boolean | null
+          subscription_ends_at?: string | null
           user_type?: string
           x_handle?: string | null
         }
@@ -160,8 +208,46 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          is_pro_dev?: boolean | null
+          subscription_ends_at?: string | null
           user_type?: string
           x_handle?: string | null
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          stripe_payment_id: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_payment_id?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_payment_id?: string | null
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
