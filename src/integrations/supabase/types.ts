@@ -95,6 +95,7 @@ export type Database = {
           created_at: string
           description: string
           dev_x_handle: string | null
+          featured_at: string | null
           hook_text: string
           id: string
           itchio_url: string | null
@@ -104,11 +105,13 @@ export type Database = {
           title: string
           trailer_url: string
           upvotes: number | null
+          views: number | null
         }
         Insert: {
           created_at?: string
           description: string
           dev_x_handle?: string | null
+          featured_at?: string | null
           hook_text: string
           id?: string
           itchio_url?: string | null
@@ -118,11 +121,13 @@ export type Database = {
           title: string
           trailer_url: string
           upvotes?: number | null
+          views?: number | null
         }
         Update: {
           created_at?: string
           description?: string
           dev_x_handle?: string | null
+          featured_at?: string | null
           hook_text?: string
           id?: string
           itchio_url?: string | null
@@ -132,6 +137,7 @@ export type Database = {
           title?: string
           trailer_url?: string
           upvotes?: number | null
+          views?: number | null
         }
         Relationships: []
       }
@@ -164,7 +170,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      archive_stale_games: { Args: never; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
