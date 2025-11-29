@@ -19,7 +19,7 @@ const Rising = () => {
     try {
       const { data, error } = await supabase
         .from("games")
-        .select("*")
+        .select("id, title, description, hook_text, trailer_url, steam_url, itchio_url, amazon_affiliate_url, tags, dev_x_handle, upvotes, views")
         .eq("status", "approved")
         .order("upvotes", { ascending: false })
         .limit(20);

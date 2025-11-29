@@ -45,7 +45,8 @@ export const TipButton = ({ gameId, gameTitle, devHandle }: TipButtonProps) => {
 
       if (error) throw error;
 
-      toast.success(`Tip payment created! Developer will receive $${(tipAmount * 0.9).toFixed(2)}`);
+      // Payment intent created successfully
+      toast.success("Tip recorded! Payment processing requires Stripe Elements setup.");
       setShowTipDialog(false);
       setAmount("5");
     } catch (error: any) {
@@ -129,7 +130,7 @@ export const TipButton = ({ gameId, gameTitle, devHandle }: TipButtonProps) => {
             </div>
 
             <p className="text-xs text-center text-muted-foreground">
-              Backend payment creation works! Full payment UI requires Stripe Elements setup.
+              Note: Full Stripe payment UI requires Stripe Elements integration. Currently creates payment intent only.
             </p>
           </Card>
         </div>
