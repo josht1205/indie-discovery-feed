@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TipButton } from "./TipButton";
 
 interface GameCardProps {
   game: {
@@ -14,6 +15,7 @@ interface GameCardProps {
     trailer_url: string;
     steam_url?: string;
     itchio_url?: string;
+    amazon_affiliate_url?: string;
     tags: string[];
     dev_x_handle?: string;
     upvotes: number;
@@ -103,8 +105,20 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
 
       // Handle buy action with affiliate tracking
       if (action === "buy") {
-        const storeType = game.steam_url ? 'steam' : 'itchio';
-        const storeUrl = game.steam_url || game.itchio_url;
+        // Priority: Amazon > Steam > itch.io
+        let storeType = 'steam';
+        let storeUrl = game.steam_url;
+        
+        if (game.amazon_affiliate_url) {
+          storeType = 'amazon';
+          storeUrl = game.amazon_affiliate_url;
+        } else if (game.steam_url) {
+          storeType = 'steam';
+          storeUrl = game.steam_url;
+        } else if (game.itchio_url) {
+          storeType = 'itchio';
+          storeUrl = game.itchio_url;
+        }
         
         if (storeUrl) {
           // Log the click for affiliate tracking
@@ -118,7 +132,7 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
 
           // Open store page
           window.open(storeUrl, "_blank");
-          toast.success("Opening store page...");
+          toast.success(`Opening ${storeType} store...`);
         }
         return;
       }
@@ -215,19 +229,26 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
           ))}
         </div>
 
-        {/* Dev handle */}
+        {/* Dev handle and tip button */}
         {game.dev_x_handle && (
-          <p className="text-xs text-muted-foreground">
-            by{" "}
-            <a
-              href={`https://x.com/${game.dev_x_handle}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              @{game.dev_x_handle}
-            </a>
-          </p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              by{" "}
+              <a
+                href={`https://x.com/${game.dev_x_handle}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                @{game.dev_x_handle}
+              </a>
+            </p>
+            <TipButton 
+              gameId={game.id} 
+              gameTitle={game.title} 
+              devHandle={game.dev_x_handle} 
+            />
+          </div>
         )}
 
         {/* Actions */}
@@ -256,7 +277,8 @@ export const GameCard = ({ game, onSwipe, userInteractions }: GameCardProps) => 
             size="lg"
             variant="outline"
             onClick={() => handleInteraction("buy")}
-            disabled={!game.steam_url && !game.itchio_url}
+            disabled={!game.steam_url && !game.itchio_url && !game.amazon_affiliate_url}
+            title={game.amazon_affiliate_url ? "Buy on Amazon" : "Buy on Steam/itch.io"}
           >
             <ExternalLink className="h-5 w-5" />
           </Button>

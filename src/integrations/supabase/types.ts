@@ -130,6 +130,7 @@ export type Database = {
       }
       games: {
         Row: {
+          amazon_affiliate_url: string | null
           boost_ends_at: string | null
           boost_priority: number | null
           created_at: string
@@ -148,6 +149,7 @@ export type Database = {
           views: number | null
         }
         Insert: {
+          amazon_affiliate_url?: string | null
           boost_ends_at?: string | null
           boost_priority?: number | null
           created_at?: string
@@ -166,6 +168,7 @@ export type Database = {
           views?: number | null
         }
         Update: {
+          amazon_affiliate_url?: string | null
           boost_ends_at?: string | null
           boost_priority?: number | null
           created_at?: string
@@ -191,6 +194,8 @@ export type Database = {
           display_name: string | null
           id: string
           is_pro_dev: boolean | null
+          stripe_connect_account_id: string | null
+          stripe_connect_onboarded: boolean | null
           subscription_ends_at: string | null
           user_type: string
           x_handle: string | null
@@ -200,6 +205,8 @@ export type Database = {
           display_name?: string | null
           id: string
           is_pro_dev?: boolean | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean | null
           subscription_ends_at?: string | null
           user_type?: string
           x_handle?: string | null
@@ -209,11 +216,57 @@ export type Database = {
           display_name?: string | null
           id?: string
           is_pro_dev?: boolean | null
+          stripe_connect_account_id?: string | null
+          stripe_connect_onboarded?: boolean | null
           subscription_ends_at?: string | null
           user_type?: string
           x_handle?: string | null
         }
         Relationships: []
+      }
+      tips: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          from_user_id: string
+          game_id: string
+          id: string
+          platform_fee: number
+          stripe_payment_intent_id: string | null
+          to_user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          from_user_id: string
+          game_id: string
+          id?: string
+          platform_fee?: number
+          stripe_payment_intent_id?: string | null
+          to_user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          from_user_id?: string
+          game_id?: string
+          id?: string
+          platform_fee?: number
+          stripe_payment_intent_id?: string | null
+          to_user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tips_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
