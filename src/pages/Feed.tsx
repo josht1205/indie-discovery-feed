@@ -32,7 +32,7 @@ const Feed = () => {
     try {
       const { data, error } = await supabase
         .from("games")
-        .select("*")
+        .select("id, title, description, hook_text, trailer_url, steam_url, itchio_url, amazon_affiliate_url, tags, dev_x_handle, upvotes, views, created_at, status")
         .eq("status", "approved")
         .order("created_at", { ascending: false });
 
