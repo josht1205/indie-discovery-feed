@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.create-tip-payment]
+verify_jwt = true
+
+[functions.onboard-stripe-connect]
+verify_jwt = true
+
+[functions.check-connect-status]
+verify_jwt = true

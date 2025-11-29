@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navigation } from "@/components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { User, LogOut, Sparkles } from "lucide-react";
+import { User, LogOut, Sparkles, DollarSign } from "lucide-react";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [displayName, setDisplayName] = useState("");
   const [xHandle, setXHandle] = useState("");
+  const [stripeOnboarded, setStripeOnboarded] = useState(false);
+  const [checkingStripe, setCheckingStripe] = useState(false);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+    
+    // Check if returning from Stripe onboarding
+    if (searchParams.get("stripe_onboarded") === "true") {
+      checkStripeStatus();
+    }
+  }, [searchParams]);
 
   const fetchProfile = async () => {
     const {
@@ -42,6 +50,47 @@ const Profile = () => {
       setProfile(data);
       setDisplayName(data.display_name || "");
       setXHandle(data.x_handle || "");
+      setStripeOnboarded(data.stripe_connect_onboarded || false);
+    }
+  };
+
+  const checkStripeStatus = async () => {
+    setCheckingStripe(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("check-connect-status");
+      
+      if (error) throw error;
+      
+      if (data.onboarded) {
+        setStripeOnboarded(true);
+        toast.success("Stripe Connect setup complete! You can now receive tips.");
+      } else {
+        toast.error("Stripe onboarding incomplete. Please try again.");
+      }
+      
+      fetchProfile();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to check Stripe status");
+    } finally {
+      setCheckingStripe(false);
+    }
+  };
+
+  const handleStripeOnboarding = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("onboard-stripe-connect");
+      
+      if (error) throw error;
+      
+      if (data.url) {
+        window.open(data.url, "_blank");
+        toast.success("Opening Stripe onboarding in a new tab...");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to start onboarding");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -165,7 +214,7 @@ const Profile = () => {
             </form>
 
             {profile.user_type === "dev" && (
-              <div className="pt-6 border-t border-border">
+              <div className="pt-6 border-t border-border space-y-3">
                 <Button
                   variant="outline"
                   className="w-full"
@@ -173,6 +222,35 @@ const Profile = () => {
                 >
                   Claim or Submit a Game
                 </Button>
+
+                <div className="space-y-2">
+                  {stripeOnboarded ? (
+                    <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <div className="flex items-center gap-2 text-green-500 text-sm">
+                        <DollarSign className="h-4 w-4" />
+                        <span className="font-medium">Stripe Connect Active</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        You can receive tips from players!
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <Button
+                        variant="default"
+                        className="w-full bg-gradient-primary gap-2"
+                        onClick={handleStripeOnboarding}
+                        disabled={isLoading || checkingStripe}
+                      >
+                        <DollarSign className="h-4 w-4" />
+                        {isLoading ? "Loading..." : "Enable Tipping (Stripe Connect)"}
+                      </Button>
+                      <p className="text-xs text-muted-foreground text-center">
+                        Set up payouts to receive tips from your fans
+                      </p>
+                    </>
+                  )}
+                </div>
               </div>
             )}
 

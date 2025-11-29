@@ -17,6 +17,7 @@ const Claim = () => {
     gameTitle: "",
     steamUrl: "",
     itchioUrl: "",
+    amazonAffiliateUrl: "",
     devXHandle: "",
   });
 
@@ -133,6 +134,22 @@ const Claim = () => {
                   }
                   placeholder="https://yourgame.itch.io/..."
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amazonAffiliateUrl">Amazon Affiliate Link (optional)</Label>
+                <Input
+                  id="amazonAffiliateUrl"
+                  type="url"
+                  value={formData.amazonAffiliateUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amazonAffiliateUrl: e.target.value })
+                  }
+                  placeholder="https://www.amazon.com/dp/..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Add your Amazon Associates affiliate link to earn commissions
+                </p>
               </div>
 
               <div className="space-y-2">
