@@ -1,17 +1,32 @@
 /**
- * Midnight Engine — v0.1.0
- * A complete 2D game engine for browser environments
+ * Midnight Engine — v0.2.0
+ * UE5 power · Godot optimization · Desktop-ready (Tauri v2)
  *
  * Architecture:
- *  ┌─────────────────────────────────────────┐
- *  │               Engine (orchestrator)      │
- *  │  GameLoop │ Renderer │ Scenes │ Input    │
- *  ├──────────────────────────────────────────┤
- *  │               ECS Core                   │
- *  │  World │ Entity │ Component │ System     │
- *  ├──────────────────────────────────────────┤
- *  │  Physics │ Animation │ Audio │ Scripting │
- *  └──────────────────────────────────────────┘
+ *  ┌────────────────────────────────────────────────────────┐
+ *  │               Engine (orchestrator)                     │
+ *  │  GameLoop │ Renderer │ Scenes │ Input │ Audio          │
+ *  ├─────────────────────────────────────────────────────────┤
+ *  │  ECS Core — World · Entity · Component · System        │
+ *  │  Groups/Tags · VisibilityNotifier · ObjectPool          │
+ *  ├─────────────────────────────────────────────────────────┤
+ *  │  Rendering Server (Godot-style decoupled)               │
+ *  │  SpriteBatch (instanced) · FrustumCuller                │
+ *  │  RenderCommandBuffer · PostProcessStack                 │
+ *  │  2D Deferred Lighting (normal maps) · DebugDraw         │
+ *  │  Tilemap (chunk-dirty system) · Camera (shake/follow)   │
+ *  ├─────────────────────────────────────────────────────────┤
+ *  │  Physics (UE5 Chaos-inspired)                           │
+ *  │  SpatialHash BroadPhase · SAT/AABB/Circle NarrowPhase   │
+ *  │  Impulse Resolver · Swept CCD · Raycasting              │
+ *  ├─────────────────────────────────────────────────────────┤
+ *  │  GPU Particles (UE5 Niagara-inspired)                   │
+ *  │  Instanced · Color/Size over lifetime · Atlas UVs        │
+ *  ├─────────────────────────────────────────────────────────┤
+ *  │  Animation · StateMachine · BlendTree1D                 │
+ *  │  Audio Engine · 3D HRTF Spatial · Reverb               │
+ *  │  Scripting · TypeScript lifecycle hooks                 │
+ *  └─────────────────────────────────────────────────────────┘
  */
 
 // ── Core ──────────────────────────────────────
@@ -20,6 +35,8 @@ export type { EngineConfig, EngineStats } from './core/Engine';
 export { GameLoop }              from './core/GameLoop';
 export { EventEmitter, globalEvents } from './core/EventEmitter';
 export { Logger, createLogger, LogLevel } from './core/Logger';
+export { ObjectPool, PoolManager } from './core/ObjectPool';
+export type { Poolable }           from './core/ObjectPool';
 
 // ── Math ──────────────────────────────────────
 export { Vec2 }       from './math/Vec2';
@@ -34,6 +51,7 @@ export { Entity }    from './ecs/Entity';
 export { Component } from './ecs/Component';
 export { System }    from './ecs/System';
 export type { ComponentClass } from './ecs/Component';
+export { GroupManager, Tags } from './ecs/Groups';
 
 // ── Rendering ─────────────────────────────────
 export { Renderer }           from './rendering/Renderer';
@@ -46,8 +64,23 @@ export type { SpriteDrawCall } from './rendering/SpriteBatch';
 export { Camera }             from './rendering/Camera';
 export { SpriteComponent }    from './rendering/SpriteComponent';
 export { PostProcessStack }   from './rendering/PostProcessStack';
-export type { PostFXSettings, } from './rendering/PostProcessStack';
+export type { PostFXSettings } from './rendering/PostProcessStack';
 export { DEFAULT_POST_FX }   from './rendering/PostProcessStack';
+// Upgraded rendering systems
+export { FrustumCuller }      from './rendering/FrustumCuller';
+export type { CullBounds }     from './rendering/FrustumCuller';
+export { RenderCommandBuffer, RenderCommandType } from './rendering/RenderCommand';
+export { RenderSystem }       from './rendering/RenderSystem';
+export { Light2D }            from './rendering/Light2D';
+export type { LightType }      from './rendering/Light2D';
+export { LightingSystem }     from './rendering/LightingSystem';
+export type { LightingConfig } from './rendering/LightingSystem';
+export { DEFAULT_LIGHTING }   from './rendering/LightingSystem';
+export { Tilemap, TilemapRenderer } from './rendering/Tilemap';
+export type { TileDefinition, TilemapLayer } from './rendering/Tilemap';
+export { DebugDraw, globalDebug } from './rendering/DebugDraw';
+export type { DebugDrawConfig }   from './rendering/DebugDraw';
+export { VisibilityNotifier, VisibilityNotifierSystem } from './rendering/VisibilityNotifier';
 
 // ── Physics ───────────────────────────────────
 export { RigidBody }          from './physics/RigidBody';
@@ -61,6 +94,11 @@ export { SpatialHashGrid }    from './physics/BroadPhase';
 export { NarrowPhase }        from './physics/NarrowPhase';
 export type { CollisionManifold } from './physics/NarrowPhase';
 export { CollisionResolver }  from './physics/CollisionResolver';
+// CCD + Raycasting (UE5 Chaos)
+export { CCD }                from './physics/CCD';
+export type { SweepResult }    from './physics/CCD';
+export { Raycast }            from './physics/Raycast';
+export type { RaycastHit, RaycastOptions } from './physics/Raycast';
 
 // ── Animation ─────────────────────────────────
 export { AnimationClip }          from './animation/AnimationClip';
@@ -112,3 +150,16 @@ export { SceneManager } from './scene/SceneManager';
 // ── Assets ────────────────────────────────────
 export { AssetLoader, globalAssets } from './assets/AssetLoader';
 export type { AssetEntry, AssetType, LoadProgress } from './assets/AssetLoader';
+
+// ── Particles (UE5 Niagara-inspired) ──────────
+export { ParticleSystem }       from './particles/ParticleSystem';
+export type {
+  ParticleEmissionParams,
+  ParticleModuleColor,
+  ParticleModuleSize,
+  ParticleModuleVelocity,
+  ParticleModuleLifetime,
+} from './particles/ParticleSystem';
+export { DEFAULT_EMISSION }     from './particles/ParticleSystem';
+export { ParticleEmitter }      from './particles/ParticleEmitter';
+export { ParticleEmitterSystem } from './particles/ParticleEmitterSystem';
