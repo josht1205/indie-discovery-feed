@@ -1,0 +1,65 @@
+{
+  "appId": "com.midnightengine.desktop",
+  "productName": "Midnight Engine",
+  "copyright": "Copyright © 2025 Midnight Engine",
+  "directories": {
+    "buildResources": "electron/icons",
+    "output": "dist-electron"
+  },
+  "files": [
+    "dist/**/*",
+    "electron/main.js",
+    "electron/preload.js",
+    "electron/icons/**/*"
+  ],
+  "extraMetadata": {
+    "main": "electron/main.js"
+  },
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      },
+      {
+        "target": "portable",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "electron/icons/icon.png",
+    "requestedExecutionLevel": "asInvoker"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowElevation": true,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Midnight Engine",
+    "installerIcon": "electron/icons/icon-256.png",
+    "uninstallerIcon": "electron/icons/icon-256.png",
+    "installerHeaderIcon": "electron/icons/icon-64.png",
+    "deleteAppDataOnUninstall": false,
+    "menuCategory": "Games",
+    "license": null
+  },
+  "linux": {
+    "target": [
+      { "target": "AppImage", "arch": ["x64"] },
+      { "target": "deb", "arch": ["x64"] }
+    ],
+    "icon": "electron/icons/icon.png",
+    "category": "Game",
+    "synopsis": "High-performance 2D game engine",
+    "description": "Midnight Engine — WebGL2 ECS game engine with physics, lighting, particles, and audio",
+    "maintainer": "Midnight Engine <midnight-engine@localhost>"
+  },
+  "mac": {
+    "target": [
+      { "target": "dmg", "arch": ["x64", "arm64"] }
+    ],
+    "icon": "electron/icons/icon.png",
+    "category": "public.app-category.games"
+  },
+  "publish": null
+}

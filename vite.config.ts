@@ -5,15 +5,17 @@ import { componentTagger } from "lovable-tagger";
 
 // Detect Tauri build (TAURI_ENV_* vars are set by the Tauri CLI)
 const isTauri = process.env.TAURI_ENV_PLATFORM !== undefined;
+// Electron dev server runs on 5173; production uses relative file:// paths
+const isElectronDev = process.env.ELECTRON_DEV === 'true';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: isTauri ? 5173 : 8080,  // Tauri dev expects 5173 by default
+    port: isTauri || isElectronDev ? 5173 : 8080,
     strictPort: isTauri,
   },
-  // Tauri uses absolute paths in production; web app uses relative
+  // Tauri production uses absolute paths; Electron + web use relative
   base: isTauri ? "/" : "./",
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
