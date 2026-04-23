@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <!-- StoneBreaker placeholder icon: Rocky as a grey circle with a fist -->
+  <rect width="128" height="128" rx="16" fill="#2D2D2D"/>
+  <!-- Body -->
+  <circle cx="64" cy="72" r="36" fill="#7A7A7A"/>
+  <!-- Head -->
+  <circle cx="64" cy="36" r="20" fill="#8C8C8C"/>
+  <!-- Eyes -->
+  <circle cx="57" cy="33" r="3" fill="#1A1A1A"/>
+  <circle cx="71" cy="33" r="3" fill="#1A1A1A"/>
+  <!-- Rock accent on chest -->
+  <polygon points="64,58 74,72 54,72" fill="#5A5A5A"/>
+  <!-- Ground crack accent -->
+  <polyline points="20,108 40,96 56,104 72,92 88,100 108,88"
+            stroke="#B87333" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
