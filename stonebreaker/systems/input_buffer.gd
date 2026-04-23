@@ -1,26 +1,31 @@
 extends Node
 
 ## 6-frame input buffer for jump and action inputs.
-## Call is_buffered(action) to check; consume(action) to clear.
-## Other systems poll this; they do not connect to input events directly.
+## Detection is event-driven via _input(); countdown runs in _process().
+## API: is_buffered(action) -> bool, consume(action) -> void.
 
 const BUFFER_FRAMES: int = 6
 const BUFFERED_ACTIONS: Array[String] = ["jump", "action"]
 
-# Maps action name -> frames remaining in buffer (0 = not buffered).
+# Maps action name -> display frames remaining (0 = not buffered).
 var _buffer: Dictionary = {}
 
 
 func _ready() -> void:
-	for action in BUFFERED_ACTIONS:
+	for action: String in BUFFERED_ACTIONS:
 		_buffer[action] = 0
 
 
-func _process(_delta: float) -> void:
-	for action in BUFFERED_ACTIONS:
-		if Input.is_action_just_pressed(action):
+func _input(event: InputEvent) -> void:
+	for action: String in BUFFERED_ACTIONS:
+		# echo:false guard prevents held-key repeats from refreshing the buffer.
+		if event.is_action_pressed(action, false):
 			_buffer[action] = BUFFER_FRAMES
-		elif _buffer[action] > 0:
+
+
+func _process(_delta: float) -> void:
+	for action: String in BUFFERED_ACTIONS:
+		if _buffer[action] > 0:
 			_buffer[action] -= 1
 
 
