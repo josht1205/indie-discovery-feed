@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "unreal": {
+      "command": "node",
+      "args": ["/ABSOLUTE/PATH/TO/UnrealMCP/MCPServer/dist/index.js"],
+      "env": {
+        "UNREAL_MCP_URL": "http://127.0.0.1:9877"
+      }
+    }
+  }
+}
