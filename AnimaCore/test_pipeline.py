@@ -21,6 +21,9 @@ import trimesh
 _here = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_here))
 
+from AnimaCore.blender_convert import (
+    BLENDER_FORMATS, SUPPORTED_FORMATS, find_blender, needs_blender,
+)
 from AnimaCore.normalize_asset import normalize_asset
 from AnimaCore.rig_utils import rig_asset
 
@@ -81,6 +84,20 @@ def main() -> int:
         result2 = rig_asset(norm, rigged2, target_engine="unity")
         assert result2["target_engine"] == "unity"
         print(f"    Unity output OK")
+
+        print(">>> format routing")
+        for ext in (".obj", ".glb", ".gltf", ".ply", ".stl"):
+            assert ext in SUPPORTED_FORMATS, ext
+            assert not needs_blender(f"x{ext}"), f"{ext} should not need Blender"
+        for ext in BLENDER_FORMATS:
+            assert needs_blender(f"x{ext}"), f"{ext} should need Blender"
+        print(f"    routing table OK ({len(SUPPORTED_FORMATS)} formats total)")
+
+        blender = find_blender()
+        if blender:
+            print(f"    Blender detected at: {blender}")
+        else:
+            print("    Blender not present in this env — skipping Blender-routed test")
 
     print("\nAll tests passed.")
     return 0

@@ -4,7 +4,10 @@
 
 The pipeline:
 
-1. **Load** — read OBJ / glTF / GLB / PLY / STL via trimesh.
+1. **Load** — 15 formats supported:
+   - **Native (trimesh):** `.obj` `.glb` `.gltf` `.ply` `.stl`
+   - **Blender-routed:** `.fbx` `.blend` `.dae` `.3ds` `.x3d` `.abc` `.usd` `.usda` `.usdc` `.usdz`
+   Non-native files are headlessly converted to `.glb` by a Blender subprocess before processing. Blender is auto-detected from the standard Windows install path; override via the `ANIMACORE_BLENDER` env var.
 2. **Normalize** — center the mesh on the X/Z plane, sit it on Y=0, scale uniformly so its height equals a target (default 1.8 m).
 3. **Decimate** — optional quadric edge-collapse to a polygon budget.
 4. **Rig** — build a 23-bone humanoid skeleton positioned inside the mesh's bounding box, compute linear-blend skin weights (4 influences per vertex, inverse-distance falloff, normalized).
@@ -18,6 +21,7 @@ AnimaCore/
 ├── __init__.py              # package
 ├── mesh_utils.py            # normalization math
 ├── rig_builder.py           # humanoid skeleton + skin-weight computation
+├── blender_convert.py       # headless Blender bridge for .fbx/.blend/.dae/etc.
 ├── normalize_asset.py       # file I/O wrapper for normalization
 ├── rig_utils.py             # full rig pipeline
 ├── animacore_cli.py         # command-line interface

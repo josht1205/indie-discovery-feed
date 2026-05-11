@@ -22,6 +22,7 @@ from typing import Dict, Optional
 import numpy as np
 import trimesh
 
+from .blender_convert import BlenderConvertContext, needs_blender
 from .rig_builder import (
     apply_transform,
     build_humanoid_skeleton,
@@ -112,7 +113,10 @@ def rig_asset(
     poly_limit = int(opt_cfg.get("polygon_limit", 0))
 
     report("Loading mesh", 0.05)
-    loaded = trimesh.load(input_path, process=False, force="mesh")
+    if needs_blender(input_path):
+        log.info("Routing input through Blender for conversion to .glb")
+    with BlenderConvertContext(input_path) as load_path:
+        loaded = trimesh.load(load_path, process=False, force="mesh")
     if isinstance(loaded, trimesh.Scene):
         meshes = [g for g in loaded.geometry.values() if isinstance(g, trimesh.Trimesh)]
         if not meshes:

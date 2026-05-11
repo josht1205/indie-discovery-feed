@@ -15,11 +15,19 @@ from typing import Optional
 import numpy as np
 import trimesh
 
+from .blender_convert import (
+    BlenderConvertContext,
+    SUPPORTED_FORMATS as ALL_SUPPORTED,
+    needs_blender,
+)
 from .mesh_utils import normalize_mesh
 
 log = logging.getLogger(__name__)
 
-SUPPORTED_FORMATS = {".obj", ".gltf", ".glb", ".ply", ".stl", ".off"}
+# Formats trimesh can load directly. Everything else in ALL_SUPPORTED is
+# routed through Blender for conversion to .glb first.
+TRIMESH_NATIVE_FORMATS = {".obj", ".gltf", ".glb", ".ply", ".stl", ".off"}
+SUPPORTED_FORMATS = ALL_SUPPORTED | TRIMESH_NATIVE_FORMATS
 
 
 def normalize_asset(
@@ -45,9 +53,12 @@ def normalize_asset(
     in_ext = os.path.splitext(full_input)[1].lower()
     if in_ext not in SUPPORTED_FORMATS:
         log.warning("Unrecognised input extension %r; trimesh will guess.", in_ext)
+    elif needs_blender(full_input):
+        log.info("Routing %s through Blender for conversion to .glb", in_ext)
 
     log.info("Loading mesh: %s", full_input)
-    loaded = trimesh.load(full_input, process=False, force="mesh")
+    with BlenderConvertContext(full_input) as load_path:
+        loaded = trimesh.load(load_path, process=False, force="mesh")
 
     if isinstance(loaded, trimesh.Scene):
         meshes = [g for g in loaded.geometry.values() if isinstance(g, trimesh.Trimesh)]

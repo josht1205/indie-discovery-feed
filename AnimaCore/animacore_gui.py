@@ -37,11 +37,31 @@ from PyQt6.QtWidgets import (
 )
 
 try:
+    from AnimaCore.blender_convert import (
+        BlenderNotFoundError, find_blender, needs_blender,
+    )
     from AnimaCore.normalize_asset import normalize_asset
     from AnimaCore.rig_utils import rig_asset
 except ImportError:
+    from blender_convert import (  # type: ignore
+        BlenderNotFoundError, find_blender, needs_blender,
+    )
     from normalize_asset import normalize_asset  # type: ignore
     from rig_utils import rig_asset  # type: ignore
+
+
+MESH_EXTENSIONS = [
+    ".obj", ".glb", ".gltf", ".ply", ".stl",
+    ".fbx", ".blend", ".dae", ".3ds", ".x3d",
+    ".abc", ".usd", ".usda", ".usdc", ".usdz",
+]
+MESH_FILTER = (
+    "All supported meshes ("
+    + " ".join(f"*{e}" for e in MESH_EXTENSIONS)
+    + ");;Native (trimesh) (*.obj *.glb *.gltf *.ply *.stl)"
+    ";;Blender-routed (*.fbx *.blend *.dae *.3ds *.x3d *.abc *.usd *.usda *.usdc *.usdz)"
+    ";;All files (*.*)"
+)
 
 
 APP_NAME = "AnimaCore"
@@ -334,16 +354,29 @@ class AnimaCoreWindow(QMainWindow):
 
         grid.addWidget(QLabel("Mesh file"), 0, 0)
         self.input_edit = QLineEdit()
-        self.input_edit.setPlaceholderText("Drop a .obj / .gltf / .glb / .ply / .stl here, or click Browse")
+        self.input_edit.setPlaceholderText(
+            "Drop any mesh here (.obj .glb .gltf .fbx .blend .dae .3ds .ply .stl .usd .abc …), "
+            "or click Browse"
+        )
         self.input_edit.setReadOnly(True)
         grid.addWidget(self.input_edit, 0, 1)
         browse = QPushButton("Browse…")
         browse.clicked.connect(self._on_browse_input)
         grid.addWidget(browse, 0, 2)
 
-        hint = QLabel("Drag-and-drop supported. Max polygon limit applied on rig.")
+        hint = QLabel(
+            "Native: .obj .glb .gltf .ply .stl   •   Blender-routed: "
+            ".fbx .blend .dae .3ds .x3d .abc .usd .usda .usdc .usdz"
+        )
         hint.setObjectName("muted")
+        hint.setWordWrap(True)
         grid.addWidget(hint, 1, 1, 1, 2)
+
+        self.blender_label = QLabel()
+        self.blender_label.setObjectName("muted")
+        self.blender_label.setWordWrap(True)
+        grid.addWidget(self.blender_label, 2, 1, 1, 2)
+        self._refresh_blender_status()
         return box
 
     def _build_options_group(self) -> QGroupBox:
@@ -489,10 +522,23 @@ class AnimaCoreWindow(QMainWindow):
         self.log.append(f'<span style="color:{color}">{msg}</span>')
 
     # ---- handlers ----------------------------------------------------------
+    def _refresh_blender_status(self) -> None:
+        path = find_blender()
+        if path:
+            self.blender_label.setText(
+                f"<span style='color:{PALETTE['ok']}'>● Blender detected:</span> "
+                f"<code>{path}</code>"
+            )
+        else:
+            self.blender_label.setText(
+                f"<span style='color:{PALETTE['warn']}'>● Blender not detected.</span> "
+                "Native formats (.obj .glb .gltf .ply .stl) will still work. "
+                "Install Blender from blender.org to enable .fbx / .blend / .dae / .3ds / .usd / .abc."
+            )
+
     def _on_browse_input(self) -> None:
         path, _ = QFileDialog.getOpenFileName(
-            self, "Select input mesh", "",
-            "3D meshes (*.obj *.gltf *.glb *.ply *.stl *.off);;All files (*.*)",
+            self, "Select input mesh", "", MESH_FILTER,
         )
         if path:
             self._set_input(path)
@@ -529,6 +575,17 @@ class AnimaCoreWindow(QMainWindow):
         self.output_edit.setText(base + suffix + ext)
         self.status.showMessage(f"Loaded: {os.path.basename(path)}")
         logging.info("Input selected: %s", path)
+        # Warn early if Blender will be needed but isn't installed.
+        if needs_blender(path) and not find_blender():
+            QMessageBox.warning(
+                self,
+                "Blender required",
+                f"{os.path.basename(path)} uses a format that requires Blender "
+                f"to import (.fbx / .blend / .dae / .3ds / .x3d / .abc / .usd*).\n\n"
+                "Install Blender from https://www.blender.org/download/ and "
+                "AnimaCore will auto-detect it, or set the ANIMACORE_BLENDER "
+                "environment variable to the full path of blender.exe.",
+            )
 
     # Drag & drop
     def dragEnterEvent(self, event) -> None:
@@ -617,7 +674,18 @@ class AnimaCoreWindow(QMainWindow):
 
     def _on_failed(self, msg: str) -> None:
         logging.error("Pipeline failed:\n%s", msg)
-        QMessageBox.critical(self, "Pipeline failed", msg)
+        if "BlenderNotFoundError" in msg or "Blender executable not found" in msg:
+            QMessageBox.critical(
+                self,
+                "Blender required",
+                "This file format needs Blender to import.\n\n"
+                "Install Blender from https://www.blender.org/download/ "
+                "(default install path is auto-detected) or set the "
+                "ANIMACORE_BLENDER environment variable to the full path of "
+                "blender.exe.",
+            )
+        else:
+            QMessageBox.critical(self, "Pipeline failed", msg)
         self.progress.setFormat("failed")
 
     def _on_worker_done(self) -> None:
