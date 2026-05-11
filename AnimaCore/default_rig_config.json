@@ -1,0 +1,16 @@
+{
+    "rigging_config": {
+        "target_skeleton_type": "humanoid_ue4",
+        "bone_cleanup_passes": 3,
+        "enforce_t_pose": true,
+        "collision_geometry_generation": "minimal_bounding_box",
+        "target_game_engine": "unreal_engine",
+        "up_axis": "Z",
+        "forward_axis": "X"
+    },
+    "optimization_settings": {
+        "polygon_limit": 50000,
+        "lod_levels": [0.5, 0.25],
+        "auto_uv_generation": false
+    }
+}

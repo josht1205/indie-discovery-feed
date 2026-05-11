@@ -1,0 +1,5 @@
+numpy>=1.24,<3
+scipy>=1.10
+trimesh>=4.0
+PyQt6>=6.5
+pyinstaller>=6.0
