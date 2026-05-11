@@ -1,0 +1,79 @@
+name: Build AnimaCore Windows EXE
+
+on:
+  push:
+    branches: [claude/auto-rig-setup-dqh0a, main]
+    paths: ["AnimaCore/**", ".github/workflows/build-animacore.yml"]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which binaries to build"
+        type: choice
+        default: both
+        options: [both, gui, cli]
+
+jobs:
+  build:
+    name: Build on Windows
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: AnimaCore
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: AnimaCore/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run smoke test
+        run: python test_pipeline.py
+
+      - name: Build GUI executable
+        if: ${{ github.event.inputs.target != 'cli' }}
+        run: python build_exe.py --gui
+
+      - name: Build CLI executable
+        if: ${{ github.event.inputs.target != 'gui' }}
+        run: python build_exe.py --cli --no-clean
+
+      - name: Show built artifacts
+        run: |
+          Get-ChildItem -Recurse dist | Select-Object FullName, Length | Format-Table -AutoSize
+          if (Test-Path dist/AnimaCore/AnimaCore.exe)        { Write-Host "OK GUI .exe present" }
+          if (Test-Path dist/AnimaCoreCLI/AnimaCoreCLI.exe)  { Write-Host "OK CLI .exe present" }
+
+      - name: Package GUI as zip
+        if: ${{ github.event.inputs.target != 'cli' }}
+        run: Compress-Archive -Path dist/AnimaCore/* -DestinationPath AnimaCore-GUI-windows.zip -Force
+
+      - name: Package CLI as zip
+        if: ${{ github.event.inputs.target != 'gui' }}
+        run: Compress-Archive -Path dist/AnimaCoreCLI/* -DestinationPath AnimaCore-CLI-windows.zip -Force
+
+      - name: Upload GUI artifact
+        if: ${{ github.event.inputs.target != 'cli' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnimaCore-GUI-windows
+          path: AnimaCore/AnimaCore-GUI-windows.zip
+          retention-days: 30
+
+      - name: Upload CLI artifact
+        if: ${{ github.event.inputs.target != 'gui' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: AnimaCore-CLI-windows
+          path: AnimaCore/AnimaCore-CLI-windows.zip
+          retention-days: 30
